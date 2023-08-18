@@ -2,19 +2,19 @@
 apply plugin: 'com.diffplug.gradle.spotless'
 apply plugin: "de.undercouch.download"
 
-task downloadJavaLicense(type: Download) {
-    src 'https://raw.githubusercontent.com/web3j/build-tools/master/gradle/spotless/java.license'
-    dest new File("$rootDir/gradle/spotless",'java.license')
-    quiet true
-    onlyIfModified true
-}
-
-task downloadFormatterProperties(type: Download) {
-    src 'https://raw.githubusercontent.com/web3j/build-tools/master/gradle/spotless/formatter.properties'
-    dest new File("$rootDir/gradle/spotless",'formatter.properties')
-    quiet true
-    onlyIfModified true
-}
+//task downloadJavaLicense(type: Download) {
+//    src 'https://raw.githubusercontent.com/web3j/build-tools/master/gradle/spotless/java.license'
+//    dest new File("$rootDir/gradle/spotless",'java.license')
+//    quiet true
+//    onlyIfModified true
+//}
+//
+//task downloadFormatterProperties(type: Download) {
+//    src 'https://raw.githubusercontent.com/axiom-web3j/build-tools/master/gradle/spotless/formatter.properties'
+//    dest new File("$rootDir/gradle/spotless",'formatter.properties')
+//    quiet true
+//    onlyIfModified true
+//}
 
 spotless {
     java {
@@ -52,4 +52,4 @@ spotless {
     }
 }
 
-spotlessCheck.dependsOn('downloadJavaLicense', 'downloadFormatterProperties')
+//spotlessCheck.dependsOn('downloadJavaLicense', 'downloadFormatterProperties')

@@ -1,4 +1,4 @@
-rootProject.name = 'web3j'
+rootProject.name = 'axiom-web3j'
 
 include 'abi'
 include 'besu'

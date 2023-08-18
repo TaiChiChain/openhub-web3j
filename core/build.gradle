@@ -6,7 +6,7 @@ plugins {
 }
 
 
-description 'web3j is a lightweight Java library for integration with Ethereum clients'
+description 'Axiom-web3j is a comprehensive and easy-to-use Axiom blockchain interaction tool developed forked from web3j'
 
 dependencies {
     api project(':abi'),

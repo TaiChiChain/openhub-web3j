@@ -35,24 +35,24 @@ ext {
 }
 
 
-description 'Web3j base project.'
+description 'Axiom-web3j base project.'
 
-[
-    'jacoco',
-    'java',
-    'javadoc',
-    'publish',
-    'repositories',
-    'spotless'
-].each { buildScript ->
-    download {
-        src "https://raw.githubusercontent.com/web3j/build-tools/master/gradle/$buildScript/build.gradle"
-        dest "$rootDir/gradle/$buildScript/build.gradle"
-        overwrite false
-        quiet true
-        onlyIfModified true
-    }
-}
+//[
+//    'jacoco',
+//    'java',
+//    'javadoc',
+//    'publish',
+//    'repositories',
+//    'spotless'
+//].each { buildScript ->
+//    download {
+//        src "https://raw.githubusercontent.com/web3j/build-tools/master/gradle/$buildScript/build.gradle"
+//        dest "$rootDir/gradle/$buildScript/build.gradle"
+//        overwrite false
+//        quiet true
+//        onlyIfModified true
+//    }
+//}
 
 allprojects {
     apply {
@@ -90,7 +90,7 @@ allprojects {
         }
     }
 
-    if (project.name != 'integration-tests' && project.name != 'web3j') {
+    if (project.name != 'integration-tests' && project.name != 'axiom-web3j') {
         apply from: "$rootDir/gradle/publish/build.gradle"
     }
 }

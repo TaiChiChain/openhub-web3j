@@ -33,7 +33,7 @@ publishing {
             pom {
                 name = project.name
                 description.set(project.provider({ project.description }))
-                url = 'https://web3j.io'
+                url = 'https://github.com/axiomesh/axiom-web3j'
 
                 licenses {
                     license {
@@ -48,16 +48,16 @@ publishing {
                         slug = project.rootProjectOverride
                     }
 
-                    url = "https://github.com/web3j/$slug"
-                    connection = "scm:https://github.com/web3j/${slug}.git"
-                    developerConnection = "scm:git://github.com/web3j/${slug}.git"
+                    url = "https://github.com/axiomesh/$slug"
+                    connection = "scm:https://github.com/axiomesh/${slug}.git"
+                    developerConnection = "scm:https://github.com/axiomesh/${slug}.git"
                 }
 
                 developers {
                     developer {
-                        id = 'conor10'
-                        name = 'Conor Svensson'
-                        email = 'conor10@gmail.com'
+                        id = 'yf1223'
+                        name = 'Andy HE'
+                        email = '394785697@qq.com'
                     }
                 }
             }
@@ -65,26 +65,57 @@ publishing {
     }
 }
 
-nexusPublishing {
-    repositories {
-        sonatype {
-            username = System.getenv('OSSRH_USERNAME')
-            password = System.getenv('OSSRH_PASSWORD')
-        }
-    }
-}
+//nexusPublishing {
+//    repositories {
+//        sonatype {
+//            username = System.getenv('OSSRH_USERNAME')
+//            password = System.getenv('OSSRH_PASSWORD')
+//        }
+//    }
+//}
+//
+//
+//nexusStaging {
+//    username System.getenv('OSSRH_USERNAME')
+//    password System.getenv('OSSRH_PASSWORD')
+//    packageGroup = rootProject.group
+//}
+
+//signing {
+//    sign publishing.publications.maven
+//    def signingKey = new File("$rootDir/web3j.asc")
+//    if (signingKey.exists()) {
+//        useInMemoryPgpKeys(signingKey.getText('UTF-8'), System.getenv('GPG_PASSPHRASE'))
+//    }
+//}
 
 
-nexusStaging {
-    username System.getenv('OSSRH_USERNAME')
-    password System.getenv('OSSRH_PASSWORD')
-    packageGroup = rootProject.group
-}
-
-signing {
-    sign publishing.publications.maven
-    def signingKey = new File("$rootDir/web3j.asc")
-    if (signingKey.exists()) {
-        useInMemoryPgpKeys(signingKey.getText('UTF-8'), System.getenv('GPG_PASSPHRASE'))
-    }
-}
+//publishing {
+//    publications {
+//        mavenJava(MavenPublication) {
+//            from components.java
+//
+//            groupId = 'com.axiom' // 修改为您的组织名或包名
+//            artifactId = 'axiom-web3j' // 修改为您的项目名
+//            version = '0.0.1' // 修改为适当的版本号
+//
+//            pom {
+//                name = 'Axiom-Web3j' // 修改为项目的名称
+//                description = 'Axiom-Web3j Library' // 修改为项目的描述
+//                url = 'https://github.com/axiomesh/axiom-web3j' // 修改为项目的 URL
+//                licenses {
+//                    license {
+//                        name = 'The Apache License, Version 2.0'
+//                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+//                    }
+//                }
+//            }
+//        }
+//    }
+//    repositories {
+//        maven {
+//            name = 'Sonatype'
+//            url = uri('https://oss.sonatype.org/service/local/staging/deploy/maven2/')
+//        }
+//    }
+//}
