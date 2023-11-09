@@ -51,3 +51,5 @@ docs/build
 **/bin
 
 web3j.asc
+
+.env.sh

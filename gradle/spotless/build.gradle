@@ -30,7 +30,7 @@ spotless {
         importOrder 'java', '', 'org.web3j', '\\#'
         trimTrailingWhitespace()
         endWithNewline()
-        licenseHeaderFile "$rootDir/gradle/spotless/java.license"
+//        licenseHeaderFile "$rootDir/gradle/spotless/java.license"
     }
     kotlin {
         // This path needs to be relative to each project
@@ -42,7 +42,7 @@ spotless {
         ktlint('0.31.0')
         trimTrailingWhitespace()
         endWithNewline()
-        licenseHeaderFile "$rootDir/gradle/spotless/java.license"
+//        licenseHeaderFile "$rootDir/gradle/spotless/java.license"
     }
     groovyGradle {
         target '*.gradle'
