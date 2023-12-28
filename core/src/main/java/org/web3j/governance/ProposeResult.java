@@ -15,7 +15,8 @@ public class ProposeResult {
 
     public ProposeResult() {}
 
-    public ProposeResult(String txHash, ProposalType type, BigInteger proposalId, String errMessage) {
+    public ProposeResult(
+            String txHash, ProposalType type, BigInteger proposalId, String errMessage) {
         this.txHash = txHash;
         this.type = type;
         this.proposalId = proposalId;

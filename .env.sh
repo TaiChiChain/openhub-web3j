@@ -1,2 +1,0 @@
-export USERNAME_GITHUB=hyf1223
-export TOKEN_GITHUB=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

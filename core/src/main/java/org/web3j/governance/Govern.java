@@ -71,7 +71,8 @@ public class Govern {
         }
 
         if (ethSendTransaction.hasError()) {
-            return new ProposeResult(null, null, null, "Transaction error: " + ethSendTransaction.getError());
+            return new ProposeResult(
+                    null, null, null, "Transaction error: " + ethSendTransaction.getError());
         }
 
         String txHash = ethSendTransaction.getTransactionHash();
@@ -93,7 +94,8 @@ public class Govern {
             return new ProposeResult(txHash, type, null, "Proposal id not generated");
         }
 
-        return new ProposeResult(txHash, type, new BigInteger(proposalIdHexOptional.get(), 16), null);
+        return new ProposeResult(
+                txHash, type, new BigInteger(proposalIdHexOptional.get(), 16), null);
     }
 
     public String voteOnProposal(ProposalType type, Long proposalId, boolean approve) {
@@ -107,7 +109,8 @@ public class Govern {
         if (ethSendTransaction.hasError()) {
             throw new GovernanceException(ethSendTransaction.getError().getMessage());
         }
-        Optional<TransactionReceipt> transactionReceipt = fetchTransactionReceipt(ethSendTransaction.getTransactionHash());
+        Optional<TransactionReceipt> transactionReceipt =
+                fetchTransactionReceipt(ethSendTransaction.getTransactionHash());
         if (!transactionReceipt.isPresent()) {
             throw new GovernanceException("Transaction receipt not generated");
         }
@@ -165,8 +168,7 @@ public class Govern {
                         new Utf8String(desc),
                         new Uint64(BigInteger.valueOf(blockNum)),
                         new DynamicBytes(data)),
-                Arrays.asList(new TypeReference<Uint64>() {
-                }));
+                Arrays.asList(new TypeReference<Uint64>() {}));
     }
 
     @NotNull
@@ -198,7 +200,7 @@ public class Govern {
                         Arrays.asList(
                                 new Uint64(BigInteger.valueOf(proposalId)),
                                 new Uint8(BigInteger.valueOf(approveInteger)),
-                                new DynamicBytes(new byte[]{})),
+                                new DynamicBytes(new byte[] {})),
                         Collections.emptyList()));
     }
 
