@@ -38,6 +38,8 @@ public class TransactionReceipt {
     private String type;
     private String effectiveGasPrice;
 
+    private String incentiveAddress;
+
     public TransactionReceipt() {}
 
     public TransactionReceipt(
@@ -73,6 +75,43 @@ public class TransactionReceipt {
         this.revertReason = revertReason;
         this.type = type;
         this.effectiveGasPrice = effectiveGasPrice;
+    }
+
+    public TransactionReceipt(
+            String transactionHash,
+            String transactionIndex,
+            String blockHash,
+            String blockNumber,
+            String cumulativeGasUsed,
+            String gasUsed,
+            String contractAddress,
+            String root,
+            String status,
+            String from,
+            String to,
+            List<Log> logs,
+            String logsBloom,
+            String revertReason,
+            String type,
+            String effectiveGasPrice,
+            String incentiveAddress) {
+        this.transactionHash = transactionHash;
+        this.transactionIndex = transactionIndex;
+        this.blockHash = blockHash;
+        this.blockNumber = blockNumber;
+        this.cumulativeGasUsed = cumulativeGasUsed;
+        this.gasUsed = gasUsed;
+        this.contractAddress = contractAddress;
+        this.root = root;
+        this.status = status;
+        this.from = from;
+        this.to = to;
+        this.logs = logs;
+        this.logsBloom = logsBloom;
+        this.revertReason = revertReason;
+        this.type = type;
+        this.effectiveGasPrice = effectiveGasPrice;
+        this.incentiveAddress = incentiveAddress;
     }
 
     public String getTransactionHash() {
@@ -223,6 +262,14 @@ public class TransactionReceipt {
         return effectiveGasPrice;
     }
 
+    public String getIncentiveAddress() {
+        return incentiveAddress;
+    }
+
+    public void setIncentiveAddress(String incentiveAddress) {
+        this.incentiveAddress = incentiveAddress;
+    }
+
     public void setEffectiveGasPrice(String effectiveGasPrice) {
         this.effectiveGasPrice = effectiveGasPrice;
     }
@@ -285,6 +332,13 @@ public class TransactionReceipt {
         if (getTo() != null ? !getTo().equals(that.getTo()) : that.getTo() != null) {
             return false;
         }
+
+        if (getIncentiveAddress() != null
+                ? !getIncentiveAddress().equals(that.getIncentiveAddress())
+                : that.getIncentiveAddress() != null) {
+            return false;
+        }
+
         if (getLogs() != null ? !getLogs().equals(that.getLogs()) : that.getLogs() != null) {
             return false;
         }
@@ -302,6 +356,7 @@ public class TransactionReceipt {
                 : that.getEffectiveGasPrice() != null) {
             return false;
         }
+
         return getRevertReason() != null
                 ? getRevertReason().equals(that.getRevertReason())
                 : that.getRevertReason() == null;
@@ -320,6 +375,9 @@ public class TransactionReceipt {
         result = 31 * result + (getStatus() != null ? getStatus().hashCode() : 0);
         result = 31 * result + (getFrom() != null ? getFrom().hashCode() : 0);
         result = 31 * result + (getTo() != null ? getTo().hashCode() : 0);
+        result =
+                31 * result
+                        + (getIncentiveAddress() != null ? getIncentiveAddress().hashCode() : 0);
         result = 31 * result + (getLogs() != null ? getLogs().hashCode() : 0);
         result = 31 * result + (getLogsBloom() != null ? getLogsBloom().hashCode() : 0);
         result = 31 * result + (getRevertReason() != null ? getRevertReason().hashCode() : 0);

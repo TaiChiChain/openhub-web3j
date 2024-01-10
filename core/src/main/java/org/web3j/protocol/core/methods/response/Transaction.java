@@ -42,6 +42,7 @@ public class Transaction {
     private String maxFeePerGas;
     private String maxPriorityFeePerGas;
     private List<AccessListObject> accessList;
+    private String incentiveAddress;
 
     public Transaction() {}
 
@@ -137,6 +138,55 @@ public class Transaction {
         this.maxFeePerGas = maxFeePerGas;
         this.maxPriorityFeePerGas = maxPriorityFeePerGas;
         this.accessList = accessList;
+    }
+
+    public Transaction(
+            String hash,
+            String nonce,
+            String blockHash,
+            String blockNumber,
+            String chainId,
+            String transactionIndex,
+            String from,
+            String to,
+            String value,
+            String gas,
+            String gasPrice,
+            String input,
+            String creates,
+            String publicKey,
+            String raw,
+            String r,
+            String s,
+            long v,
+            String type,
+            String maxFeePerGas,
+            String maxPriorityFeePerGas,
+            List accessList,
+            String incentiveAddress) {
+        this.hash = hash;
+        this.nonce = nonce;
+        this.blockHash = blockHash;
+        this.blockNumber = blockNumber;
+        this.chainId = chainId;
+        this.transactionIndex = transactionIndex;
+        this.from = from;
+        this.to = to;
+        this.value = value;
+        this.gasPrice = gasPrice;
+        this.gas = gas;
+        this.input = input;
+        this.creates = creates;
+        this.publicKey = publicKey;
+        this.raw = raw;
+        this.r = r;
+        this.s = s;
+        this.v = v;
+        this.type = type;
+        this.maxFeePerGas = maxFeePerGas;
+        this.maxPriorityFeePerGas = maxPriorityFeePerGas;
+        this.accessList = accessList;
+        this.incentiveAddress = incentiveAddress;
     }
 
     public void setChainId(String chainId) {
@@ -367,6 +417,14 @@ public class Transaction {
         return accessList;
     }
 
+    public String getIncentiveAddress() {
+        return incentiveAddress;
+    }
+
+    public void setIncentiveAddress(String incentiveAddress) {
+        this.incentiveAddress = incentiveAddress;
+    }
+
     public void setAccessList(List<AccessListObject> accessList) {
         this.accessList = accessList;
     }
@@ -419,6 +477,11 @@ public class Transaction {
             return false;
         }
         if (getTo() != null ? !getTo().equals(that.getTo()) : that.getTo() != null) {
+            return false;
+        }
+        if (getIncentiveAddress() != null
+                ? !getIncentiveAddress().equals(that.getIncentiveAddress())
+                : that.getIncentiveAddress() != null) {
             return false;
         }
         if (getValueRaw() != null
@@ -490,6 +553,9 @@ public class Transaction {
                                 : 0);
         result = 31 * result + (getFrom() != null ? getFrom().hashCode() : 0);
         result = 31 * result + (getTo() != null ? getTo().hashCode() : 0);
+        result =
+                31 * result
+                        + (getIncentiveAddress() != null ? getIncentiveAddress().hashCode() : 0);
         result = 31 * result + (getValueRaw() != null ? getValueRaw().hashCode() : 0);
         result = 31 * result + (getGasPriceRaw() != null ? getGasPriceRaw().hashCode() : 0);
         result = 31 * result + (getGasRaw() != null ? getGasRaw().hashCode() : 0);

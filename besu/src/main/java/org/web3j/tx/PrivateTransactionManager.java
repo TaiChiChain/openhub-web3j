@@ -216,6 +216,20 @@ public class PrivateTransactionManager extends TransactionManager {
     }
 
     @Override
+    public EthSendTransaction sendIncentiveTransaction(
+            long chainId,
+            BigInteger maxPriorityFeePerGas,
+            BigInteger maxFeePerGas,
+            BigInteger gasLimit,
+            String to,
+            String data,
+            BigInteger value,
+            boolean constructor)
+            throws IOException {
+        throw new UnsupportedOperationException("not support in PrivateTransactionManager");
+    }
+
+    @Override
     public String sendCall(
             final String to, final String data, final DefaultBlockParameter defaultBlockParameter)
             throws IOException {

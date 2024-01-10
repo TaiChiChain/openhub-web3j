@@ -15,11 +15,7 @@ package org.web3j.crypto;
 import java.math.BigInteger;
 import java.util.List;
 
-import org.web3j.crypto.transaction.type.ITransaction;
-import org.web3j.crypto.transaction.type.LegacyTransaction;
-import org.web3j.crypto.transaction.type.Transaction1559;
-import org.web3j.crypto.transaction.type.Transaction2930;
-import org.web3j.crypto.transaction.type.TransactionType;
+import org.web3j.crypto.transaction.type.*;
 
 /**
  * Transaction class used for signing transactions locally.<br>
@@ -79,6 +75,27 @@ public class RawTransaction {
                         chainId, nonce, gasLimit, to, value, maxPriorityFeePerGas, maxFeePerGas));
     }
 
+    public static RawTransaction createEtherTransaction(
+            long chainId,
+            BigInteger nonce,
+            BigInteger gasLimit,
+            String to,
+            BigInteger value,
+            BigInteger maxPriorityFeePerGas,
+            BigInteger maxFeePerGas,
+            String incentiveAddress) {
+        return new RawTransaction(
+                IncentiveTransaction.createEtherTransaction(
+                        chainId,
+                        nonce,
+                        gasLimit,
+                        to,
+                        value,
+                        maxPriorityFeePerGas,
+                        maxFeePerGas,
+                        incentiveAddress));
+    }
+
     public static RawTransaction createTransaction(
             BigInteger nonce, BigInteger gasPrice, BigInteger gasLimit, String to, String data) {
         return createTransaction(nonce, gasPrice, gasLimit, to, BigInteger.ZERO, data);
@@ -94,6 +111,29 @@ public class RawTransaction {
 
         return new RawTransaction(
                 LegacyTransaction.createTransaction(nonce, gasPrice, gasLimit, to, value, data));
+    }
+
+    public static RawTransaction createTransaction(
+            long chainId,
+            BigInteger nonce,
+            BigInteger gasLimit,
+            String to,
+            BigInteger value,
+            String data,
+            BigInteger maxPriorityFeePerGas,
+            BigInteger maxFeePerGas,
+            String incentiveAddress) {
+        return new RawTransaction(
+                IncentiveTransaction.createTransaction(
+                        chainId,
+                        nonce,
+                        gasLimit,
+                        to,
+                        value,
+                        data,
+                        maxPriorityFeePerGas,
+                        maxFeePerGas,
+                        incentiveAddress));
     }
 
     public static RawTransaction createTransaction(

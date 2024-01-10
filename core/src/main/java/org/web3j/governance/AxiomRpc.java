@@ -16,7 +16,8 @@ public class AxiomRpc {
 
     public String getAxmStatus() throws IOException {
         Request<?, AxiomStatus> request =
-                new Request<>("axm_status", Collections.emptyList(), web3jService, AxiomStatus.class);
+                new Request<>(
+                        "axm_status", Collections.emptyList(), web3jService, AxiomStatus.class);
 
         AxiomStatus response = request.send();
 

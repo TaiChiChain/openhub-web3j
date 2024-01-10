@@ -43,6 +43,8 @@ public class Transaction {
     private BigInteger maxPriorityFeePerGas;
     private BigInteger maxFeePerGas;
 
+    private String incentiveAddress;
+
     public Transaction(
             String from,
             BigInteger nonce,
@@ -79,6 +81,35 @@ public class Transaction {
         this.nonce = nonce;
         this.maxPriorityFeePerGas = maxPriorityFeePerGas;
         this.maxFeePerGas = maxFeePerGas;
+    }
+
+    public Transaction(
+            String from,
+            BigInteger nonce,
+            BigInteger gasPrice,
+            BigInteger gasLimit,
+            String to,
+            BigInteger value,
+            String data,
+            Long chainId,
+            BigInteger maxPriorityFeePerGas,
+            BigInteger maxFeePerGas,
+            String incentiveAddress) {
+        this.chainId = chainId;
+        this.from = from;
+        this.to = to;
+        this.gas = gasLimit;
+        this.gasPrice = gasPrice;
+        this.value = value;
+
+        if (data != null) {
+            this.data = Numeric.prependHexPrefix(data);
+        }
+
+        this.nonce = nonce;
+        this.maxPriorityFeePerGas = maxPriorityFeePerGas;
+        this.maxFeePerGas = maxFeePerGas;
+        this.incentiveAddress = incentiveAddress;
     }
 
     public static Transaction createContractTransaction(
@@ -185,6 +216,10 @@ public class Transaction {
 
     public String getMaxFeePerGas() {
         return convert(maxFeePerGas);
+    }
+
+    public String getIncentiveAddress() {
+        return incentiveAddress;
     }
 
     private static String convert(BigInteger value) {
