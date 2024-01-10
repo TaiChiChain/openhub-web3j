@@ -120,6 +120,30 @@ public abstract class TransactionManager {
         return processResponse(ethSendTransaction);
     }
 
+    protected TransactionReceipt executeIncentiveTransaction(
+            long chainId,
+            BigInteger maxPriorityFeePerGas,
+            BigInteger maxFeePerGas,
+            BigInteger gasLimit,
+            String to,
+            String data,
+            BigInteger value,
+            boolean constructor)
+            throws IOException, TransactionException {
+
+        EthSendTransaction ethSendTransaction =
+                sendIncentiveTransaction(
+                        chainId,
+                        maxPriorityFeePerGas,
+                        maxFeePerGas,
+                        gasLimit,
+                        to,
+                        data,
+                        value,
+                        constructor);
+        return processResponse(ethSendTransaction);
+    }
+
     public EthSendTransaction sendTransaction(
             BigInteger gasPrice, BigInteger gasLimit, String to, String data, BigInteger value)
             throws IOException {
@@ -149,6 +173,17 @@ public abstract class TransactionManager {
             throws IOException;
 
     public abstract EthSendTransaction sendEIP1559Transaction(
+            long chainId,
+            BigInteger maxPriorityFeePerGas,
+            BigInteger maxFeePerGas,
+            BigInteger gasLimit,
+            String to,
+            String data,
+            BigInteger value,
+            boolean constructor)
+            throws IOException;
+
+    public abstract EthSendTransaction sendIncentiveTransaction(
             long chainId,
             BigInteger maxPriorityFeePerGas,
             BigInteger maxFeePerGas,

@@ -96,6 +96,37 @@ public class ClientTransactionManager extends TransactionManager {
     }
 
     @Override
+    public EthSendTransaction sendIncentiveTransaction(
+            long chainId,
+            BigInteger maxPriorityFeePerGas,
+            BigInteger maxFeePerGas,
+            BigInteger gasLimit,
+            String to,
+            String data,
+            BigInteger value,
+            boolean constructor)
+            throws IOException {
+
+        String incentiveAddr = web3j.getIncentiveAddr().send().getIncentiveAddress();
+
+        Transaction transaction =
+                new Transaction(
+                        getFromAddress(),
+                        null,
+                        null,
+                        gasLimit,
+                        to,
+                        value,
+                        data,
+                        chainId,
+                        maxPriorityFeePerGas,
+                        maxFeePerGas,
+                        incentiveAddr);
+
+        return web3j.ethSendTransaction(transaction).send();
+    }
+
+    @Override
     public String sendCall(String to, String data, DefaultBlockParameter defaultBlockParameter)
             throws IOException {
         EthCall ethCall =

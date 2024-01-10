@@ -22,10 +22,7 @@ import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.request.Transaction;
-import org.web3j.protocol.core.methods.response.EthCall;
-import org.web3j.protocol.core.methods.response.EthGetCode;
-import org.web3j.protocol.core.methods.response.EthGetTransactionCount;
-import org.web3j.protocol.core.methods.response.EthSendTransaction;
+import org.web3j.protocol.core.methods.response.*;
 import org.web3j.service.TxSignService;
 import org.web3j.service.TxSignServiceImpl;
 import org.web3j.tx.exceptions.TxHashMismatchException;
@@ -103,6 +100,11 @@ public class RawTransactionManager extends TransactionManager {
         return ethGetTransactionCount.getTransactionCount();
     }
 
+    protected String getIncentiveAddress() throws IOException {
+        AXMIncentiveAddrResponse axmIncentiveAddrResponse = web3j.getIncentiveAddr().send();
+        return axmIncentiveAddrResponse.getIncentiveAddress();
+    }
+
     public TxHashVerifier getTxHashVerifier() {
         return txHashVerifier;
     }
@@ -153,6 +155,36 @@ public class RawTransactionManager extends TransactionManager {
                         data,
                         maxPriorityFeePerGas,
                         maxFeePerGas);
+
+        return signAndSend(rawTransaction);
+    }
+
+    @Override
+    public EthSendTransaction sendIncentiveTransaction(
+            long chainId,
+            BigInteger maxPriorityFeePerGas,
+            BigInteger maxFeePerGas,
+            BigInteger gasLimit,
+            String to,
+            String data,
+            BigInteger value,
+            boolean constructor)
+            throws IOException {
+
+        BigInteger nonce = getNonce();
+        String incentiveAddress = getIncentiveAddress();
+
+        RawTransaction rawTransaction =
+                RawTransaction.createTransaction(
+                        chainId,
+                        nonce,
+                        gasLimit,
+                        to,
+                        value,
+                        data,
+                        maxPriorityFeePerGas,
+                        maxFeePerGas,
+                        incentiveAddress);
 
         return signAndSend(rawTransaction);
     }

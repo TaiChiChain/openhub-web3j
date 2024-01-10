@@ -15,7 +15,8 @@ package org.web3j.crypto.transaction.type;
 public enum TransactionType {
     LEGACY(null),
     EIP2930(((byte) 0x01)),
-    EIP1559(((byte) 0x02));
+    EIP1559(((byte) 0x02)),
+    IncentiveTx(((byte) 0x03));
 
     Byte type;
 
@@ -37,5 +38,9 @@ public enum TransactionType {
 
     public boolean isEip2930() {
         return this.equals(TransactionType.EIP2930);
+    }
+
+    public boolean isIncentiveTx() {
+        return this.equals(TransactionType.IncentiveTx);
     }
 }
