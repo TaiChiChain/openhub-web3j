@@ -2,14 +2,14 @@ package org.web3j.governance.whitelistmanager;
 
 import java.util.List;
 
-public class WLProposalExtra {
+public class WhiteListProposalExtra {
     private List<WhiteListProvider> providers;
 
-    public WLProposalExtra(List<WhiteListProvider> providers) {
+    public WhiteListProposalExtra(List<WhiteListProvider> providers) {
         this.providers = providers;
     }
 
-    public WLProposalExtra() {}
+    public WhiteListProposalExtra() {}
 
     public List<WhiteListProvider> getProviders() {
         return providers;

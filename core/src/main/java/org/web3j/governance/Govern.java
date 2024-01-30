@@ -5,6 +5,7 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -12,9 +13,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jetbrains.annotations.NotNull;
 
 import org.web3j.abi.FunctionEncoder;
+import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.DynamicBytes;
 import org.web3j.abi.datatypes.Function;
+import org.web3j.abi.datatypes.Type;
 import org.web3j.abi.datatypes.Utf8String;
 import org.web3j.abi.datatypes.generated.Uint64;
 import org.web3j.abi.datatypes.generated.Uint8;
@@ -23,15 +26,14 @@ import org.web3j.crypto.RawTransaction;
 import org.web3j.crypto.TransactionEncoder;
 import org.web3j.governance.constants.GovernanceConstant;
 import org.web3j.governance.constants.ProposalType;
-import org.web3j.governance.councilmanager.CouncilProposalExtra;
 import org.web3j.governance.exceptions.GovernanceException;
-import org.web3j.governance.whitelistmanager.WLProposalExtra;
+import org.web3j.governance.model.GovernResult;
+import org.web3j.governance.model.ProposalVO;
+import org.web3j.governance.model.ProposeResVO;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
-import org.web3j.protocol.core.methods.response.EthBlock;
-import org.web3j.protocol.core.methods.response.EthGetTransactionReceipt;
-import org.web3j.protocol.core.methods.response.EthSendTransaction;
-import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.protocol.core.methods.request.Transaction;
+import org.web3j.protocol.core.methods.response.*;
 import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.utils.Numeric;
 
@@ -49,88 +51,168 @@ public class Govern {
         this.contractGasProvider = contractGasProvider;
     }
 
-    public <T> ProposeResult propose(
-            ProposalType type, String title, String desc, Long blockNum, T extraData)
-            throws GovernanceException {
-        if (type == null || !checkExtraData(type, extraData)) {
-            return new ProposeResult(null, null, null, "Invalid extraData");
-        }
-
-        Function function =
-                getEncodedProposalFunction(type, title, desc, blockNum, getByteArray(extraData));
-        String encodedFunction = FunctionEncoder.encode(function);
-        String address = getSystemContractAddr(type);
-        if (address == null) {
-            return new ProposeResult(null, null, null, "Invalid proposalType");
-        }
-        EthSendTransaction ethSendTransaction;
+    /**
+     * Generates a proposal and sends a transaction to the governance contract.
+     *
+     * @param type the type of the proposal
+     * @param title the title of the proposal
+     * @param desc the description of the proposal
+     * @param blockNum the block number
+     * @param extraData the extra data for the proposal
+     * @return the result of the proposal
+     */
+    public <T> GovernResult<ProposeResVO> propose(
+            ProposalType type, String title, String desc, Long blockNum, T extraData) {
         try {
-            ethSendTransaction = sendTransaction(address, encodedFunction);
+            String encodedFunction =
+                    encodeProposeFunction(type, title, desc, blockNum, getByteArray(extraData));
+            EthSendTransaction ethSendTransaction =
+                    sendTransaction(
+                            GovernanceConstant.ST_GOVERNANCE_CONTRACT_ADDRESS, encodedFunction);
+
+            if (ethSendTransaction.hasError()) {
+                return GovernResult.failure(
+                        "Transaction error: " + ethSendTransaction.getError().getMessage());
+            }
+
+            String txHash = ethSendTransaction.getTransactionHash();
+            Optional<TransactionReceipt> receiptOptional = fetchTransactionReceipt(txHash);
+
+            if (!receiptOptional.isPresent()) {
+                return GovernResult.failure("Transaction receipt not generated");
+            }
+            if (!"0x1".equals(receiptOptional.get().getStatus())) {
+                return GovernResult.failure("Transaction failed");
+            }
+
+            Optional<String> proposalIdHexOptional = getProposalIdHex(receiptOptional);
+
+            if (!proposalIdHexOptional.isPresent()) {
+                return GovernResult.failure("Proposal id not generated");
+            }
+
+            ProposeResVO proposeResVO =
+                    new ProposeResVO(txHash, type, new BigInteger(proposalIdHexOptional.get(), 16));
+            return GovernResult.success(proposeResVO);
+
         } catch (IOException e) {
-            return new ProposeResult(null, null, null, e.getMessage());
+            return GovernResult.failure("IO Exception: " + e.getMessage());
+        } catch (GovernanceException e) {
+            return GovernResult.failure("Governance Exception: " + e.getMessage());
         }
-
-        if (ethSendTransaction.hasError()) {
-            return new ProposeResult(
-                    null, null, null, "Transaction error: " + ethSendTransaction.getError());
-        }
-
-        String txHash = ethSendTransaction.getTransactionHash();
-        Optional<TransactionReceipt> receiptOptional = fetchTransactionReceipt(txHash);
-
-        if (!receiptOptional.isPresent()) {
-            // Transaction receipt not generated
-            return new ProposeResult(txHash, type, null, "Transaction receipt not generated");
-        }
-        if (!receiptOptional.get().getStatus().equals("0x1")) {
-            // Transaction failed
-            return new ProposeResult(txHash, type, null, "Transaction failed");
-        }
-
-        Optional<String> proposalIdHexOptional = getProposalIdHex(receiptOptional);
-
-        if (!proposalIdHexOptional.isPresent()) {
-            // Proposal id not generated
-            return new ProposeResult(txHash, type, null, "Proposal id not generated");
-        }
-
-        return new ProposeResult(
-                txHash, type, new BigInteger(proposalIdHexOptional.get(), 16), null);
     }
 
-    public String voteOnProposal(ProposalType type, Long proposalId, boolean approve) {
-        String encodedFunction = getEncodedVoteFunction(proposalId, approve ? 1 : 0);
-        EthSendTransaction ethSendTransaction;
+    /**
+     * Vote on a proposal.
+     *
+     * @param proposalId The ID of the proposal to vote on.
+     * @param approve A boolean indicating whether to approve or reject the proposal.
+     * @return A GovernResult containing the transaction hash if successful, or an error message if
+     *     the vote fails.
+     */
+    public GovernResult<String> vote(Long proposalId, boolean approve) {
+        String encodedFunction = encodeVoteFunction(proposalId, approve ? 1 : 0);
         try {
-            ethSendTransaction = sendTransaction(getSystemContractAddr(type), encodedFunction);
+            EthSendTransaction ethSendTransaction =
+                    sendTransaction(
+                            GovernanceConstant.ST_GOVERNANCE_CONTRACT_ADDRESS, encodedFunction);
+
+            if (ethSendTransaction.hasError()) {
+                return GovernResult.failure(
+                        "Transaction Error: " + ethSendTransaction.getError().getMessage());
+            }
+
+            String transactionHash = ethSendTransaction.getTransactionHash();
+            Optional<TransactionReceipt> transactionReceiptOpt =
+                    fetchTransactionReceipt(transactionHash);
+
+            if (!transactionReceiptOpt.isPresent()) {
+                return GovernResult.failure(
+                        "Transaction receipt not generated for hash: " + transactionHash);
+            }
+
+            TransactionReceipt transactionReceipt = transactionReceiptOpt.get();
+            if (!"0x1".equals(transactionReceipt.getStatus())) {
+                return GovernResult.failure(
+                        "Transaction failed");
+            }
+
+            return GovernResult.success(transactionHash);
+
         } catch (IOException e) {
-            throw new GovernanceException(e.getMessage());
+            return GovernResult.failure("IO Exception: " + e.getMessage());
+        } catch (GovernanceException e) {
+            return GovernResult.failure("Governance Exception: " + e.getMessage());
         }
-        if (ethSendTransaction.hasError()) {
-            throw new GovernanceException(ethSendTransaction.getError().getMessage());
-        }
-        Optional<TransactionReceipt> transactionReceipt =
-                fetchTransactionReceipt(ethSendTransaction.getTransactionHash());
-        if (!transactionReceipt.isPresent()) {
-            throw new GovernanceException("Transaction receipt not generated");
-        }
-        if (!transactionReceipt.get().getStatus().equals("0x1")) {
-            throw new GovernanceException("Transaction failed");
-        }
-        return ethSendTransaction.getTransactionHash();
     }
 
-    private static String getSystemContractAddr(ProposalType type) {
-        String address = "";
-        if (type == ProposalType.CouncilElect) {
-            address = GovernanceConstant.ST_GOVERNANCE_COUNCIL_ADDRESS;
-        } else if (type == ProposalType.WhiteListProviderAdd
-                || type == ProposalType.WhiteListProviderRemove) {
-            address = GovernanceConstant.ST_GOVERNANCE_WHITELIST_PROVIDER_ADDRESS;
+    /**
+     * Retrieves the latest proposal ID from the specified contract address.
+     *
+     * @param contractAddress the address of the contract
+     * @return the latest proposal ID as a GovernResult object
+     * @throws IOException if an IO error occurs during the function execution
+     */
+    public GovernResult<BigInteger> getLatestProposalID(String contractAddress) throws IOException {
+        String encodedFunction = FunctionEncoder.encode(getLatestProposalIDFunction());
+        String responseValue = callReadOnlyFunction(contractAddress, encodedFunction);
+
+        List<Type> response =
+                FunctionReturnDecoder.decode(
+                        responseValue, getLatestProposalIDFunction().getOutputParameters());
+
+        if (!response.isEmpty()) {
+            BigInteger proposalID = (BigInteger) response.get(0).getValue();
+            return GovernResult.success(proposalID);
         } else {
-            return null;
+            return GovernResult.failure("Proposal ID not found");
         }
-        return address;
+    }
+
+    /**
+     * Retrieves a proposal by its ID.
+     *
+     * @param proposalId the ID of the proposal to retrieve
+     * @return a GovernResult object containing the proposal, if found
+     */
+    public GovernResult<ProposalVO> getProposal(Long proposalId) {
+        try {
+            Function function = getProposalFunction(proposalId);
+            Transaction transaction =
+                    Transaction.createEthCallTransaction(
+                            GovernanceConstant.ZERO_ADDRESS,
+                            GovernanceConstant.ST_GOVERNANCE_CONTRACT_ADDRESS,
+                            FunctionEncoder.encode(function));
+            EthCall ethCall =
+                    web3j.ethCall(transaction, DefaultBlockParameterName.LATEST).sendAsync().get();
+            List<Type> results =
+                    FunctionReturnDecoder.decode(
+                            ethCall.getValue(), function.getOutputParameters());
+            if (results.size() != 0) {
+                String jsonString = results.get(0).toString();
+                ObjectMapper objectMapper = new ObjectMapper();
+                ProposalVO proposalVO = objectMapper.readValue(jsonString, ProposalVO.class);
+                return GovernResult.success(proposalVO);
+            }
+        } catch (Exception e) {
+            return GovernResult.failure(e.getMessage());
+        }
+        return GovernResult.failure("Proposal not found");
+    }
+
+    private Function getProposalFunction(Long proposalId) {
+        return new Function(
+                GovernanceConstant.PROPOSAL_METHOD_NAME,
+                Collections.singletonList(new Uint64(proposalId)),
+                Collections.singletonList(new TypeReference<ProposalVO>() {}));
+    }
+
+    private String callReadOnlyFunction(String contractAddress, String encodedFunction)
+            throws IOException {
+        Transaction transaction =
+                Transaction.createEthCallTransaction(null, contractAddress, encodedFunction);
+        EthCall ethCall = web3j.ethCall(transaction, DefaultBlockParameterName.LATEST).send();
+        return ethCall.getValue();
     }
 
     private Optional<TransactionReceipt> fetchTransactionReceipt(String txHash)
@@ -158,17 +240,18 @@ public class Govern {
                 .map(topic -> topic.substring(2));
     }
 
-    private static Function getEncodedProposalFunction(
+    private String encodeProposeFunction(
             ProposalType type, String title, String desc, Long blockNum, byte[] data) {
-        return new Function(
-                "propose",
-                Arrays.asList(
-                        new Uint8(BigInteger.valueOf(type.getType())),
-                        new Utf8String(title),
-                        new Utf8String(desc),
-                        new Uint64(BigInteger.valueOf(blockNum)),
-                        new DynamicBytes(data)),
-                Arrays.asList(new TypeReference<Uint64>() {}));
+        return FunctionEncoder.encode(
+                new Function(
+                        GovernanceConstant.PROPOSE_METHOD_NAME,
+                        Arrays.asList(
+                                new Uint8(BigInteger.valueOf(type.getType())),
+                                new Utf8String(title),
+                                new Utf8String(desc),
+                                new Uint64(BigInteger.valueOf(blockNum)),
+                                new DynamicBytes(data)),
+                        Arrays.asList(new TypeReference<Uint64>() {})));
     }
 
     @NotNull
@@ -182,26 +265,21 @@ public class Govern {
         }
     }
 
-    private <T> boolean checkExtraData(ProposalType type, T extraData) {
-        if (ProposalType.CouncilElect == type) {
-            return extraData instanceof CouncilProposalExtra;
-        } else if (ProposalType.WhiteListProviderAdd == type
-                || ProposalType.WhiteListProviderRemove == type) {
-            return extraData instanceof WLProposalExtra;
-        } else {
-            throw new RuntimeException("proposal type is not supported");
-        }
-    }
-
-    private static String getEncodedVoteFunction(Long proposalId, int approveInteger) {
+    private String encodeVoteFunction(Long proposalId, int approveInteger) {
         return FunctionEncoder.encode(
                 new Function(
-                        "vote",
+                        GovernanceConstant.VOTE_METHOD_NAME,
                         Arrays.asList(
                                 new Uint64(BigInteger.valueOf(proposalId)),
-                                new Uint8(BigInteger.valueOf(approveInteger)),
-                                new DynamicBytes(new byte[] {})),
+                                new Uint8(BigInteger.valueOf(approveInteger))),
                         Collections.emptyList()));
+    }
+
+    private Function getLatestProposalIDFunction() {
+        return new Function(
+                GovernanceConstant.PROPOSAL_LATE_ID_METHOD_NAME,
+                Collections.emptyList(),
+                Collections.singletonList(new TypeReference<Uint64>() {}));
     }
 
     private EthSendTransaction sendTransaction(String systemContractAddr, String encodedFunction)
@@ -239,8 +317,4 @@ public class Govern {
     private EthBlock.Block getLatestBlock() throws IOException {
         return web3j.ethGetBlockByNumber(DefaultBlockParameterName.LATEST, true).send().getBlock();
     }
-
-    //    public ProposalDetails queryProposal(Long proposalId) {
-    //        return null;
-    //    }
 }

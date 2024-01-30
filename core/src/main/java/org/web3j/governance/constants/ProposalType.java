@@ -11,7 +11,9 @@ public enum ProposalType {
 
     WhiteListProviderAdd(4),
 
-    WhiteListProviderRemove(5);
+    WhiteListProviderRemove(5),
+
+    GasUpdate(6);
 
     private final Integer type;
 

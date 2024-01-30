@@ -1,0 +1,39 @@
+name: Gradle Publish
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'adopt'
+          cache: gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Extract version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Update gradle.properties
+        run: |
+          echo "version=$VERSION" >> gradle.properties
+
+      - name: Build with Gradle
+        run: ./gradlew build
+
+      - name: Publish to GitHub Packages
+        run: |
+          ./gradlew :core:publish :rlp:publish :utils:publish :abi:publish :crypto:publish :tuples:publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
