@@ -41,7 +41,7 @@ import org.web3j.utils.Numeric;
 /** JSON-RPC 2.0 factory implementation. */
 public class JsonRpc2_0Web3j implements Web3j {
 
-    public static final int DEFAULT_BLOCK_TIME = 15 * 1000;
+    public static final int DEFAULT_BLOCK_TIME = 1000;
 
     protected final Web3jService web3jService;
     private final JsonRpc2_0Rx web3jRx;

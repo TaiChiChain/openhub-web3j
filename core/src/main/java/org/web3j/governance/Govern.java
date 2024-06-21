@@ -133,8 +133,7 @@ public class Govern {
 
             TransactionReceipt transactionReceipt = transactionReceiptOpt.get();
             if (!"0x1".equals(transactionReceipt.getStatus())) {
-                return GovernResult.failure(
-                        "Transaction failed");
+                return GovernResult.failure("Transaction failed");
             }
 
             return GovernResult.success(transactionHash);
